@@ -1,0 +1,54 @@
+GNS3 Server Start/Stop Checklist (GCP)
+
+🛑 Stopping for the Day
+1. Quit the GNS3 Client on your Mac
+   - Cmd + Q or menu → GNS3 → Quit
+
+2. SSH into your GCP server from your Mac
+   ssh youruser@<GCP-server-IP>
+
+3. Stop the GNS3 server process
+   pkill gns3server
+
+4. (Optional) Stop the VM to save cost
+   gcloud compute instances stop gns3-srv --zone=<your-zone>
+
+
+▶️ Starting Next Time
+1. (If stopped) Start the VM in GCP
+   gcloud compute instances start gns3-srv --zone=<your-zone>
+
+2. SSH into the VM
+   ssh youruser@<GCP-server-IP>
+
+3. Start GNS3 server in the background
+   nohup gns3server --host 0.0.0.0 --port 3080 >/dev/null 2>&1 &
+
+4. Quick-start 1-liner (starts server immediately on login)
+   ssh youruser@<GCP-server-IP> "nohup gns3server --host 0.0.0.0 --port 3080 >/dev/null 2>&1 &"
+
+5. On your Mac, open the GNS3 Client — it should auto-connect.
+
+6. Go to File → New Template → Install from GNS3 Server to confirm the appliance list loads.
+
+
+💡 Optional: Alias Setup for Quick Start/Stop (Mac)
+1. Open your `.zshrc` file:
+   nano ~/.zshrc
+
+2. Add these aliases at the bottom (replace <youruser> and <GCP-server-IP> with actual values):
+   alias gns3-start='ssh youruser@<GCP-server-IP> "nohup gns3server --host 0.0.0.0 --port 3080 >/dev/null 2>&1 &"'
+   alias gns3-stop='ssh youruser@<GCP-server-IP> "pkill -f gns3server"'
+
+3. Save and exit nano:
+   CTRL + O, Enter, CTRL + X
+
+4. Reload your shell:
+   source ~/.zshrc
+
+5. Run the aliases anytime:
+   gns3-start
+   gns3-stop
+
+✅ gns3-start will SSH into your GCP VM and start the GNS3 server in the background immediately.
+✅ gns3-stop will SSH into your GCP VM and stop the GNS3 server process.

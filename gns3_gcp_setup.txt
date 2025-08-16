@@ -1,0 +1,77 @@
+GNS3 v3.0.5 on Google Cloud (Free Tier) - Condensed Setup Guide
+==============================================================
+
+1. Create GCP VM (e2-micro, Ubuntu 22.04 LTS)
+--------------------------------------------
+gcloud compute instances create gns3-server   --zone=us-central1-a   --machine-type=e2-micro   --image-family=ubuntu-2204-lts   --image-project=ubuntu-os-cloud   --boot-disk-size=30GB   --tags=gns3,ssh
+
+2. Firewall Rule (Allow SSH + GNS3 API from your IP)
+----------------------------------------------------
+gcloud compute firewall-rules create allow-gns3-from-myip   --network=default   --allow=tcp:22,tcp:3080   --source-ranges="$(curl -s https://ifconfig.me)/32"   --target-tags=gns3
+
+3. SSH into VM
+--------------
+gcloud compute ssh gns3-server --zone=us-central1-a
+
+4. Install Dependencies
+-----------------------
+sudo apt update && sudo apt install -y python3 python3-pip python3-aiohttp ubridge qemu qemu-utils
+
+5. Install pipx
+---------------
+sudo apt install -y pipx && pipx ensurepath
+# Log out/in or run: exec $SHELL
+
+6. Install GNS3 Server v3.0.5 via pipx
+--------------------------------------
+pipx install gns3-server
+
+7. Create systemd Service
+-------------------------
+sudo tee /etc/systemd/system/gns3server.service >/dev/null <<'EOF'
+[Unit]
+Description=GNS3 server (v3 via pipx)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=rdolliver
+Group=rdolliver
+Environment=HOME=/home/rdolliver
+ExecStart=/home/rdolliver/.local/bin/gns3server --host 0.0.0.0 --port 3080
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+8. Enable & Start Service
+-------------------------
+sudo systemctl daemon-reload && sudo systemctl enable --now gns3server
+
+9. Verify
+---------
+systemctl status gns3server --no-pager
+curl -s http://127.0.0.1:3080/v3/version && echo
+
+10. Install GNS3 GUI on macOS (Official DMG)
+--------------------------------------------
+- Download from: https://github.com/GNS3/gns3-gui/releases/latest
+- Install GNS3.app into /Applications
+
+11. Connect GUI to GCP Server
+-----------------------------
+- Preferences → Server → Remote servers → Add
+  - Name: GCP-GNS3
+  - Host: <VM_PUBLIC_IP>
+  - Port: 3080
+  - Protocol: HTTP (SSL off)
+- Test connection (should show 3.0.5)
+- Save & use workspace
+
+Optional Extras
+---------------
+# VPCS (lightweight host) + Dynamips (classic IOS support)
+sudo apt install -y vpcs dynamips
+

@@ -1,0 +1,13 @@
+Internet
+    |
+ pfSense
+(Firewall/VPN)
+    |
+┌────────┴────────┐
+|                 |
+Cisco IOSv1      Cisco IOSv2
+(R1 - HQ)        (R2 - Branch)
+|  \              /   |
+|   \            /    |
+Linux Host   WAN Emulator   VyOS Router
+(Traffic)     (WAN delay)    (ISP)
